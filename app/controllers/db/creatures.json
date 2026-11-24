@@ -1,0 +1,22 @@
+[
+    {
+        "id": 1,
+        "name": "Asterius, o Minotauro",
+        "title": "Fera do Labirinto",
+        "hp": 130,
+        "attack": 24,
+        "defense": 10,
+        "speed": 9,
+        "xp": 100
+    },
+    {
+        "id": 2,
+        "name": "Hidra de Lerna",
+        "title": "Serpente dos Pântanos",
+        "hp": 170,
+        "attack": 27,
+        "defense": 14,
+        "speed": 8,
+        "xp": 160
+    }
+]

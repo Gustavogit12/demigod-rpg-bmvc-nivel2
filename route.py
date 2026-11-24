@@ -22,6 +22,49 @@ def helper(info= None):
 #-----------------------------------------------------------------------------
 # Suas rotas aqui:
 
+@app.route('/', method='GET')
+@app.route('/inicio', method='GET')
+def action_inicio():
+    return ctl.render('inicio')
+
+
+@app.route('/bestiario', method='GET')
+def action_bestiario():
+    return ctl.render('bestiario')
+
+
+@app.route('/bestiario/novo', method='GET')
+def action_novo_get():
+    return ctl.render('formulario')
+
+
+@app.route('/bestiario/novo', method='POST')
+def action_novo_post():
+    form = request.forms.decode()
+    error = ctl.create_enemy(form)
+    if error:
+        return ctl.formulario(None, error, ctl.form_values(form))
+    redirect('/bestiario?aviso=criada')
+
+
+@app.route('/bestiario/editar/<enemy_id:int>', method='GET')
+def action_editar_get(enemy_id):
+    return ctl.render('formulario', enemy_id)
+
+
+@app.route('/bestiario/editar/<enemy_id:int>', method='POST')
+def action_editar_post(enemy_id):
+    form = request.forms.decode()
+    error = ctl.update_enemy(enemy_id, form)
+    if error:
+        return ctl.formulario(enemy_id, error, ctl.form_values(form))
+    redirect('/bestiario?aviso=editada')
+
+
+@app.route('/bestiario/excluir/<enemy_id:int>', method='POST')
+def action_excluir(enemy_id):
+    ctl.delete_enemy(enemy_id)
+    redirect('/bestiario?aviso=excluida')
 
 
 #-----------------------------------------------------------------------------

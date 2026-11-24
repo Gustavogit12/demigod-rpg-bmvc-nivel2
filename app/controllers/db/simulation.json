@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "title": "Raio Celestial vs. Minotauro",
+    "godly_parent": "Zeus",
+    "level": 3,
+    "enemy_key": "Minotauro",
+    "ability_index": 0,
+    "custom_defense": null
+  },
+  {
+    "id": 2,
+    "title": "Fúria das Marés vs. Hidra",
+    "godly_parent": "Poseidon",
+    "level": 4,
+    "enemy_key": "Hidra de Lerna",
+    "ability_index": 0,
+    "custom_defense": null
+  },
+  {
+    "id": 3,
+    "title": "Fissura do Submundo vs. Empusa",
+    "godly_parent": "Hades",
+    "level": 3,
+    "enemy_key": "Empusa",
+    "ability_index": 1,
+    "custom_defense": null
+  }
+]
