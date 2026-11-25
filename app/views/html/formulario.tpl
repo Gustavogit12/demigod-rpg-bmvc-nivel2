@@ -10,10 +10,11 @@
 
     <header class="topo">
         <h1>🐉 {{titulo}}</h1>
-        <p>Preencha os atributos da criatura e clique em salvar.</p>
+        <p>Usuário autenticado: <strong>{{current_user.username}}</strong> • Preencha os atributos e salve.</p>
         <nav class="menu">
             <a href="/inicio">Início</a>
-            <a href="/bestiario">Bestiário (cadastro de criaturas)</a>
+            <a href="/bestiario">Bestiário</a>
+            <a href="/logout">Sair ({{current_user.username}})</a>
         </nav>
     </header>
 
@@ -60,7 +61,7 @@
     </main>
 
     <footer>
-        <p>Estrutura BMVC • Python + Bottle • Projeto de Gustavo</p>
+        <p>Estrutura BMVC Nível 3 • Python + Bottle • Projeto de Gustavo</p>
     </footer>
 
     <script src="/static/js/script.js"></script>

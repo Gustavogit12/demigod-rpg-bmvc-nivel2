@@ -3,26 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demigod RPG - Bestiário</title>
+    <title>Demigod RPG - Bestiário (Área Restrita)</title>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
 
     <header class="topo">
         <h1>🐉 Bestiário do Labirinto</h1>
-        <p>Cadastre, consulte, edite e remova as criaturas que os semideuses vão enfrentar.</p>
+        <p>Área restrita do mestre (<strong>{{current_user.username}}</strong>): cadastre, consulte, edite e remova criaturas.</p>
         <nav class="menu">
             <a href="/inicio">Início</a>
-            <a href="/bestiario">Bestiário (cadastro de criaturas)</a>
+            <a href="/bestiario">Bestiário</a>
+            <a href="/logout">Sair ({{current_user.username}})</a>
         </nav>
     </header>
 
     <main class="container">
 
         <section>
-            <h2>Propósito desta página</h2>
+            <h2>Propósito desta área restrita</h2>
             <div class="painel">
-                <p>Esta página é a ferramenta do mestre do <strong>Demigod RPG</strong>. Aqui ele administra as criaturas do jogo: cadastra monstros novos, ajusta os atributos dos que já existem e remove os que não serão usados.</p>
+                <p>Esta página é a ferramenta restrita do mestre do <strong>Demigod RPG</strong>. Somente usuários autenticados podem cadastrar novos monstros, alterar atributos e remover criaturas do jogo.</p>
             </div>
         </section>
 
@@ -83,7 +84,7 @@
     </main>
 
     <footer>
-        <p>Estrutura BMVC • Python + Bottle • Projeto de Gustavo</p>
+        <p>Estrutura BMVC Nível 3 • Python + Bottle • Projeto de Gustavo</p>
     </footer>
 
     <script src="/static/js/script.js"></script>

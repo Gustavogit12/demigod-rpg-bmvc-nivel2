@@ -9,11 +9,16 @@
 <body>
 
     <header class="topo">
-        <h1>⚡ Demigod RPG: Guia das Linhagens ⚡</h1>
+        <h1 Demigod RPG: Guia das Linhagens </h1>
         <p>Consulte as classes divinas, conheça as criaturas do labirinto e teste um ataque.</p>
         <nav class="menu">
             <a href="/inicio">Início</a>
-            <a href="/bestiario">Bestiário (cadastro de criaturas)</a>
+            % if current_user:
+            <a href="/bestiario">Bestiário</a>
+            <a href="/logout">Sair ({{current_user.username}})</a>
+            % else:
+            <a href="/login">Login</a>
+            % end
         </nav>
     </header>
 
@@ -22,7 +27,7 @@
         <section>
             <h2>Propósito deste portal</h2>
             <div class="painel">
-                <p>Este portal é o guia de consulta do <strong>Demigod RPG</strong>. Aqui o jogador compara os atributos de cada linhagem olímpica, conhece os monstros que vai enfrentar e simula um ataque antes de escolher o seu semideus. As criaturas são administradas no <strong>Bestiário</strong>.</p>
+                <p>Este portal é o guia de consulta do <strong>Demigod RPG</strong>. Aqui o jogador compara os atributos de cada linhagem olímpica, conhece os monstros que vai enfrentar e simula um ataque antes de escolher o seu semideus. O cadastro das criaturas fica na área restrita do <strong>Bestiário</strong>.</p>
             </div>
         </section>
 
@@ -70,7 +75,7 @@
                 % end
             </div>
             % else:
-            <p class="vazio">Nenhuma criatura cadastrada. Cadastre uma no Bestiário.</p>
+            <p class="vazio">Nenhuma criatura cadastrada no momento.</p>
             % end
         </section>
 
@@ -98,7 +103,7 @@
     </main>
 
     <footer>
-        <p>Estrutura BMVC • Python + Bottle • Projeto de Gustavo</p>
+        <p>Estrutura BMVC Nível 3 • Python + Bottle • Projeto de Gustavo</p>
     </footer>
 
     <script src="/static/js/script.js"></script>

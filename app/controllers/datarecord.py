@@ -1,43 +1,66 @@
 import json
 import os
+import uuid
 
+from app.models.conta_usuario import ContaUsuario
 from app.models.rpg_engine import ChildOfHades, ChildOfPoseidon, ChildOfZeus, Enemy
 
-FILE_PATH = "app/controllers/db/creatures.json"
+CREATURES_FILE = "app/controllers/db/creatures.json"
+USERS_FILE = "app/controllers/db/users.json"
 
 
-class DataRecord():
-    """Guarda os semideuses (fixos) e as criaturas (CRUD, salvas em JSON)."""
+class DataRecord:
+    """Guarda semideuses, criaturas (CRUD JSON), contas e sessões de login."""
 
     def __init__(self):
         self.__demigods = []
         self.__enemies = []
+        self.__users = []
+        self.__sessions = {}  # token -> username
         self.read()
 
     def read(self):
-        self.__demigods = []
-        self.__demigods.append(ChildOfZeus("Thalia"))
-        self.__demigods.append(ChildOfPoseidon("Percy"))
-        self.__demigods.append(ChildOfHades("Nico"))
+        self.__demigods = [
+            ChildOfZeus("Thalia"),
+            ChildOfPoseidon("Percy"),
+            ChildOfHades("Nico"),
+        ]
 
         try:
-            with open(FILE_PATH, "r", encoding="utf-8") as json_file:
+            with open(CREATURES_FILE, "r", encoding="utf-8") as json_file:
                 data = json.load(json_file)
                 self.__enemies = [Enemy(**item) for item in data]
         except (FileNotFoundError, json.JSONDecodeError):
-            os.makedirs(os.path.dirname(FILE_PATH), exist_ok=True)
-            self.__enemies = []
-            self.__enemies.append(Enemy("Asterius, o Minotauro", "Fera do Labirinto", 130, 24, 10, 9, 100, 1))
-            self.__enemies.append(Enemy("Hidra de Lerna", "Serpente dos Pântanos", 170, 27, 14, 8, 160, 2))
+            os.makedirs(os.path.dirname(CREATURES_FILE), exist_ok=True)
+            self.__enemies = [
+                Enemy("Asterius, o Minotauro", "Fera do Labirinto", 130, 24, 10, 9, 100, 1),
+                Enemy("Hidra de Lerna", "Serpente dos Pântanos", 170, 27, 14, 8, 160, 2),
+            ]
             self.save()
 
+        try:
+            with open(USERS_FILE, "r", encoding="utf-8") as users_file:
+                users_data = json.load(users_file)
+                self.__users = [ContaUsuario(**item) for item in users_data]
+        except (FileNotFoundError, json.JSONDecodeError):
+            os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
+            self.__users = [
+                ContaUsuario("mestre", "olimpo123", "mestre"),
+                ContaUsuario("quiron", "labirinto123", "mestre"),
+            ]
+            self.save_users()
+
     def save(self):
-        os.makedirs(os.path.dirname(FILE_PATH), exist_ok=True)
-        data = []
-        for enemy in self.__enemies:
-            data.append(enemy.to_dict())
-        with open(FILE_PATH, "w", encoding="utf-8") as json_file:
+        os.makedirs(os.path.dirname(CREATURES_FILE), exist_ok=True)
+        data = [enemy.to_dict() for enemy in self.__enemies]
+        with open(CREATURES_FILE, "w", encoding="utf-8") as json_file:
             json.dump(data, json_file, ensure_ascii=False, indent=4)
+
+    def save_users(self):
+        os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
+        data = [user.to_dict() for user in self.__users]
+        with open(USERS_FILE, "w", encoding="utf-8") as users_file:
+            json.dump(data, users_file, ensure_ascii=False, indent=4)
 
     def __next_id(self):
         biggest = 0
@@ -59,8 +82,16 @@ class DataRecord():
         return None
 
     def add_enemy(self, data):
-        enemy = Enemy(data["name"], data["title"], data["hp"], data["attack"],
-                      data["defense"], data["speed"], data["xp"], self.__next_id())
+        enemy = Enemy(
+            data["name"],
+            data["title"],
+            data["hp"],
+            data["attack"],
+            data["defense"],
+            data["speed"],
+            data["xp"],
+            self.__next_id(),
+        )
         self.__enemies.append(enemy)
         self.save()
 
@@ -86,3 +117,31 @@ class DataRecord():
         self.__enemies.remove(enemy)
         self.save()
         return True
+
+    def authenticate(self, username, password):
+        username = (username or "").strip()
+        password = password or ""
+        for user in self.__users:
+            if user.username == username and user.password == password:
+                return user
+        return None
+
+    def create_session(self, username):
+        token = str(uuid.uuid4())
+        self.__sessions[token] = username
+        return token
+
+    def get_user_by_session(self, token):
+        if not token:
+            return None
+        username = self.__sessions.get(token)
+        if not username:
+            return None
+        for user in self.__users:
+            if user.username == username:
+                return user
+        return None
+
+    def logout_session(self, token):
+        if token and token in self.__sessions:
+            del self.__sessions[token]
