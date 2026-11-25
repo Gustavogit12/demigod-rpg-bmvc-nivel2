@@ -3,6 +3,7 @@
 ## Trabalhando com o BMVC no BASH:
 
 1. Executar o arquivo 'route.py', na raiz do projeto.
+2. use o endereço http://localhost:8080/inicio
 
 ## Trabalhando com o BMVC no DOCKER:
 
