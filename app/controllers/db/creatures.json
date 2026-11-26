@@ -18,5 +18,15 @@
         "defense": 14,
         "speed": 8,
         "xp": 160
+    },
+    {
+        "id": 3,
+        "name": "juno",
+        "title": "dragao sem cabeças",
+        "hp": 52,
+        "attack": 10,
+        "defense": 10,
+        "speed": 10,
+        "xp": 10000
     }
 ]

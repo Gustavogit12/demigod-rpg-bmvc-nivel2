@@ -129,4 +129,120 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
+    // ---------- Bestiário: atualização assíncrona via WebSocket ----------
+    var corpoCriaturas = document.getElementById("corpo-criaturas");
+    var wsStatus = document.getElementById("ws-status");
+    var wsEvento = document.getElementById("ws-evento");
+
+    if (corpoCriaturas && window.WebSocket) {
+        var areaTabela = document.getElementById("area-tabela");
+        var mensagemVazio = document.getElementById("mensagem-vazio");
+        var protocolo = window.location.protocol === "https:" ? "wss://" : "ws://";
+        var ws = new WebSocket(protocolo + window.location.host + "/ws/bestiario");
+        var botoesDado = document.querySelectorAll(".btn-dado");
+        for (var d = 0; d < botoesDado.length; d++) {
+            botoesDado[d].addEventListener("click", function () {
+                if (ws.readyState === WebSocket.OPEN) {
+                    var lados = Number(this.getAttribute("data-lados"));
+                    ws.send(JSON.stringify({ type: "dice_roll", sides: lados }));
+                }
+            });
+        }
+        function escaparTexto(valor) {
+            return String(valor)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        function vincularConfirmacaoExclusao() {
+            var forms = document.querySelectorAll(".form-excluir");
+            for (var i = 0; i < forms.length; i++) {
+                forms[i].onsubmit = function (evento) {
+                    var nome = this.getAttribute("data-nome");
+                    if (!confirm('Deseja realmente excluir "' + nome + '"?')) {
+                        evento.preventDefault();
+                    }
+                };
+            }
+        }
+
+        function aplicarFiltroAtual() {
+            var campoFiltro = document.getElementById("filtro");
+            if (!campoFiltro) {
+                return;
+            }
+            var termo = campoFiltro.value.toLowerCase();
+            var linhas = corpoCriaturas.querySelectorAll("tr");
+            for (var i = 0; i < linhas.length; i++) {
+                var nomeLinha = linhas[i].cells[0].textContent.toLowerCase();
+                linhas[i].style.display = nomeLinha.indexOf(termo) !== -1 ? "" : "none";
+            }
+        }
+
+        function renderizarCriaturas(enemies) {
+            if (!enemies || enemies.length === 0) {
+                corpoCriaturas.innerHTML = "";
+                if (areaTabela) areaTabela.style.display = "none";
+                if (mensagemVazio) mensagemVazio.style.display = "";
+                return;
+            }
+
+            if (areaTabela) areaTabela.style.display = "";
+            if (mensagemVazio) mensagemVazio.style.display = "none";
+
+            var html = "";
+            for (var i = 0; i < enemies.length; i++) {
+                var e = enemies[i];
+                html += "<tr>" +
+                    "<td>" + escaparTexto(e.name) + "</td>" +
+                    "<td>" + escaparTexto(e.title) + "</td>" +
+                    "<td>" + escaparTexto(e.hp) + "</td>" +
+                    "<td>" + escaparTexto(e.attack) + "</td>" +
+                    "<td>" + escaparTexto(e.defense) + "</td>" +
+                    "<td>" + escaparTexto(e.speed) + "</td>" +
+                    "<td>" + escaparTexto(e.xp) + "</td>" +
+                    '<td class="acoes">' +
+                        '<a class="botao secundario" href="/bestiario/editar/' + escaparTexto(e.id) + '">Editar</a> ' +
+                        '<form method="post" action="/bestiario/excluir/' + escaparTexto(e.id) + '" ' +
+                              'class="form-excluir" data-nome="' + escaparTexto(e.name) + '">' +
+                            '<button type="submit" class="perigo">Excluir</button>' +
+                        "</form>" +
+                    "</td>" +
+                "</tr>";
+            }
+            corpoCriaturas.innerHTML = html;
+            vincularConfirmacaoExclusao();
+            aplicarFiltroAtual();
+        }
+
+        ws.onopen = function () {
+            if (wsStatus) wsStatus.textContent = "Conectado (ao vivo)";
+        };
+
+        ws.onmessage = function (evento) {
+            try {
+                var dados = JSON.parse(evento.data);
+                if (dados.type === "bestiario_sync") {
+                    } else if (dados.type === "dice_roll") {
+                    if (wsEvento && dados.message) {
+                        var horaDado = dados.timestamp ? "[" + dados.timestamp + "] " : "";
+                        wsEvento.textContent = horaDado + dados.message;
+                    }
+                    renderizarCriaturas(dados.enemies);
+                    if (wsEvento && dados.message) {
+                        var hora = dados.timestamp ? "[" + dados.timestamp + "] " : "";
+                        wsEvento.textContent = hora + dados.message;
+                    }
+                }
+            } catch (err) {
+                console.error("Erro ao processar mensagem WebSocket:", err);
+            }
+        };
+
+        ws.onclose = function () {
+            if (wsStatus) wsStatus.textContent = "Desconectado";
+        };
+    }
 });

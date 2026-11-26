@@ -18,7 +18,7 @@
         </nav>
     </header>
 
-    <main class="container">
+    <main class="container"> 
 
         <section>
             <h2>Propósito desta área restrita</h2>
@@ -39,8 +39,16 @@
                 <a class="botao" href="/bestiario/novo">+ Nova criatura</a>
             </div>
 
-            % if enemies:
-            <div class="tabela-rolagem">
+            <div class="painel" id="ws-status-box">
+                <p><strong>Tempo real (WebSocket):</strong> <span id="ws-status">Conectando...</span></p>
+                <p id="ws-evento">Aguardando alterações no Bestiário.</p>
+                <div class="barra">
+                    <button type="button" class="botao secundario btn-dado" data-lados="6">🎲 d6</button>
+                    <button type="button" class="botao secundario btn-dado" data-lados="10">🎲 d10</button>
+                    <button type="button" class="botao secundario btn-dado" data-lados="20">🎲 d20</button>
+                </div>
+            </div>
+            <div class="tabela-rolagem" id="area-tabela" % if not enemies: style="display: none;" % end>
                 <table class="tabela" id="tabela-criaturas">
                     <thead>
                         <tr>
@@ -54,7 +62,7 @@
                             <th>Ações</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="corpo-criaturas">
                         % for e in enemies:
                         <tr>
                             <td>{{e.name}}</td>
@@ -76,9 +84,9 @@
                     </tbody>
                 </table>
             </div>
-            % else:
-            <p class="vazio">Nenhuma criatura cadastrada. Clique em "Nova criatura" para começar.</p>
-            % end
+            <p class="vazio" id="mensagem-vazio" % if enemies: style="display: none;" % end>
+                Nenhuma criatura cadastrada. Clique em "Nova criatura" para começar.
+            </p>
         </section>
 
     </main>

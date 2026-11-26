@@ -1,9 +1,24 @@
 from bottle import Bottle, redirect, request, run, static_file
+import json
+import random
+from datetime import datetime
+from geventwebsocket import WebSocketError
+from geventwebsocket.handler import WebSocketHandler
+from bottle import ServerAdapter
 
 from app.controllers.application import Application
+from app.controllers.ws_hub import hub
+
 
 app = Bottle()
 ctl = Application()
+
+
+class GeventWebSocketServer(ServerAdapter):
+    def run(self, handler):
+        from gevent.pywsgi import WSGIServer
+        server = WSGIServer((self.host, self.port), handler, handler_class=WebSocketHandler)
+        server.serve_forever()
 
 
 # -----------------------------------------------------------------------------
@@ -17,6 +32,49 @@ def serve_static(filepath):
 @app.route("/helper")
 def helper(info=None):
     return ctl.render("helper")
+
+
+# -----------------------------------------------------------------------------
+# Endpoint WebSocket (atualização assíncrona em tempo real):
+
+@app.route("/ws/bestiario")
+def ws_bestiario():
+    ws = request.environ.get("wsgi.websocket")
+    if not ws:
+        return "Requisição WebSocket esperada."
+    while True:
+            msg = ws.receive()
+            if msg is None:
+                break
+            try:
+                data = json.loads(msg)
+                if data.get("type") == "dice_roll":
+                    sides = int(data.get("sides", 0))
+                    if sides in (6, 10, 20):
+                        result = random.randint(1, sides)
+                        hub.broadcast({
+                            "type": "dice_roll",
+                            "sides": sides,
+                            "result": result,
+                            "timestamp": datetime.now().strftime("%H:%M:%S"),
+                            "message": f"Rolou d{sides} e tirou {result}!",
+                        })
+            except Exception:
+                pass
+    hub.register(ws)
+    try:
+        # Envia o estado atual assim que o cliente conecta
+        ws.send(ctl.bestiario_snapshot_json("Conectado ao canal em tempo real."))
+        while True:
+            
+            msg = ws.receive()
+            if msg is None:
+                break
+    except WebSocketError:
+        pass
+    
+    finally:
+        hub.unregister(ws)
 
 
 # -----------------------------------------------------------------------------
@@ -70,7 +128,7 @@ def action_novo_post():
     error = ctl.create_enemy(form)
     if error:
         return ctl.formulario(None, error, ctl.form_values(form))
-    redirect("/inicio ?aviso=criada")
+    redirect("/bestiario?aviso=criada")
 
 
 @app.route("/bestiario/editar/<enemy_id:int>", method="GET")
@@ -84,16 +142,16 @@ def action_editar_post(enemy_id):
     error = ctl.update_enemy(enemy_id, form)
     if error:
         return ctl.formulario(enemy_id, error, ctl.form_values(form))
-    redirect("/inicio?aviso=editada")
+    redirect("/bestiario?aviso=editada")
 
 
 @app.route("/bestiario/excluir/<enemy_id:int>", method="POST")
 def action_excluir(enemy_id):
     ctl.delete_enemy(enemy_id)
-    redirect("/inicio?aviso=excluida")
+    redirect("/bestiario?aviso=excluida")
 
 
 # -----------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    run(app, host="0.0.0.0", port=8080, debug=True)
+    run(app, host="0.0.0.0", port=8080, server=GeventWebSocketServer)

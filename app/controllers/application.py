@@ -1,7 +1,9 @@
+import json
+from datetime import datetime
 from bottle import redirect, request, response, template
 
 from app.controllers.datarecord import DataRecord
-
+from app.controllers.ws_hub import hub
 SESSION_COOKIE = "demigod_session"
 
 FIELDS = ["name", "title", "hp", "attack", "defense", "speed", "xp"]
@@ -134,27 +136,32 @@ class Application:
         return values
 
     def create_enemy(self, form):
-        self.require_login()
+        user = self.require_login()
         data, error = self.__read_form(form)
         if error:
             return error
         self.__model.add_enemy(data)
+        self.__notify_ws(f"Criatura '{data['name']}' adicionada por {user.username}.")
         return None
 
     def update_enemy(self, enemy_id, form):
-        self.require_login()
+        user = self.require_login()
         if self.__model.get_enemy(enemy_id) is None:
             redirect("/bestiario")
         data, error = self.__read_form(form)
         if error:
             return error
         self.__model.update_enemy(enemy_id, data)
+        self.__notify_ws(f"Criatura '{data['name']}' atualizada por {user.username}.")
         return None
 
     def delete_enemy(self, enemy_id):
-        self.require_login()
+        user = self.require_login()
+        enemy = self.__model.get_enemy(enemy_id)
+        nome = enemy.name if enemy else f"ID {enemy_id}"
         self.__model.delete_enemy(enemy_id)
-
+        self.__notify_ws(f"Criatura '{nome}' removida por {user.username}.")
+        
     def __read_form(self, form):
         name = form.get("name", "").strip()
         title = form.get("title", "").strip()
@@ -174,3 +181,21 @@ class Application:
         if data["hp"] < 1:
             return None, "O HP precisa ser maior que zero."
         return data, None
+    def bestiario_snapshot_json(self, event_message="Atualização no Bestiário"):
+        enemies = [e.to_dict() for e in self.__model.get_enemies()]
+        payload = {
+            "type": "bestiario_sync",
+            "message": event_message,
+            "timestamp": datetime.now().strftime("%H:%M:%S"),
+            "enemies": enemies,
+        }
+        return json.dumps(payload, ensure_ascii=False)
+
+    def __notify_ws(self, event_message):
+        enemies = [e.to_dict() for e in self.__model.get_enemies()]
+        hub.broadcast({
+            "type": "bestiario_sync",
+            "message": event_message,
+            "timestamp": datetime.now().strftime("%H:%M:%S"),
+            "enemies": enemies,
+        })
