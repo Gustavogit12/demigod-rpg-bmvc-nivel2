@@ -18,7 +18,7 @@
         </nav>
     </header>
 
-    <main class="container"> 
+    <main class="container">
 
         <section>
             <h2>Propósito desta área restrita</h2>
@@ -48,6 +48,7 @@
                     <button type="button" class="botao secundario btn-dado" data-lados="20">🎲 d20</button>
                 </div>
             </div>
+
             <div class="tabela-rolagem" id="area-tabela" % if not enemies: style="display: none;" % end>
                 <table class="tabela" id="tabela-criaturas">
                     <thead>
@@ -92,7 +93,7 @@
     </main>
 
     <footer>
-        <p>Estrutura BMVC Nível 3 • Python + Bottle • Projeto de Gustavo</p>
+        <p>Estrutura BMVC Nível 4 • Python + Bottle + WebSocket • Projeto de Gustavo</p>
     </footer>
 
     <script src="/static/js/script.js"></script>

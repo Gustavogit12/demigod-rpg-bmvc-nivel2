@@ -139,15 +139,7 @@ document.addEventListener("DOMContentLoaded", function () {
         var mensagemVazio = document.getElementById("mensagem-vazio");
         var protocolo = window.location.protocol === "https:" ? "wss://" : "ws://";
         var ws = new WebSocket(protocolo + window.location.host + "/ws/bestiario");
-        var botoesDado = document.querySelectorAll(".btn-dado");
-        for (var d = 0; d < botoesDado.length; d++) {
-            botoesDado[d].addEventListener("click", function () {
-                if (ws.readyState === WebSocket.OPEN) {
-                    var lados = Number(this.getAttribute("data-lados"));
-                    ws.send(JSON.stringify({ type: "dice_roll", sides: lados }));
-                }
-            });
-        }
+
         function escaparTexto(valor) {
             return String(valor)
                 .replace(/&/g, "&amp;")
@@ -217,6 +209,16 @@ document.addEventListener("DOMContentLoaded", function () {
             aplicarFiltroAtual();
         }
 
+        var botoesDado = document.querySelectorAll(".btn-dado");
+        for (var d = 0; d < botoesDado.length; d++) {
+            botoesDado[d].addEventListener("click", function () {
+                if (ws.readyState === WebSocket.OPEN) {
+                    var lados = Number(this.getAttribute("data-lados"));
+                    ws.send(JSON.stringify({ type: "dice_roll", sides: lados }));
+                }
+            });
+        }
+
         ws.onopen = function () {
             if (wsStatus) wsStatus.textContent = "Conectado (ao vivo)";
         };
@@ -225,15 +227,15 @@ document.addEventListener("DOMContentLoaded", function () {
             try {
                 var dados = JSON.parse(evento.data);
                 if (dados.type === "bestiario_sync") {
-                    } else if (dados.type === "dice_roll") {
-                    if (wsEvento && dados.message) {
-                        var horaDado = dados.timestamp ? "[" + dados.timestamp + "] " : "";
-                        wsEvento.textContent = horaDado + dados.message;
-                    }
                     renderizarCriaturas(dados.enemies);
                     if (wsEvento && dados.message) {
                         var hora = dados.timestamp ? "[" + dados.timestamp + "] " : "";
                         wsEvento.textContent = hora + dados.message;
+                    }
+                } else if (dados.type === "dice_roll") {
+                    if (wsEvento && dados.message) {
+                        var horaDado = dados.timestamp ? "[" + dados.timestamp + "] " : "";
+                        wsEvento.textContent = horaDado + dados.message;
                     }
                 }
             } catch (err) {

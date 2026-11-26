@@ -1,10 +1,9 @@
-from bottle import Bottle, redirect, request, run, static_file
+from bottle import Bottle, redirect, request, run, static_file, ServerAdapter
 import json
 import random
 from datetime import datetime
 from geventwebsocket import WebSocketError
 from geventwebsocket.handler import WebSocketHandler
-from bottle import ServerAdapter
 
 from app.controllers.application import Application
 from app.controllers.ws_hub import hub
@@ -42,7 +41,11 @@ def ws_bestiario():
     ws = request.environ.get("wsgi.websocket")
     if not ws:
         return "Requisição WebSocket esperada."
-    while True:
+
+    hub.register(ws)
+    try:
+        ws.send(ctl.bestiario_snapshot_json("Conectado ao canal em tempo real."))
+        while True:
             msg = ws.receive()
             if msg is None:
                 break
@@ -61,18 +64,8 @@ def ws_bestiario():
                         })
             except Exception:
                 pass
-    hub.register(ws)
-    try:
-        # Envia o estado atual assim que o cliente conecta
-        ws.send(ctl.bestiario_snapshot_json("Conectado ao canal em tempo real."))
-        while True:
-            
-            msg = ws.receive()
-            if msg is None:
-                break
     except WebSocketError:
         pass
-    
     finally:
         hub.unregister(ws)
 
